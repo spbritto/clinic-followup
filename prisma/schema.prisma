@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -12,4 +6,35 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// Multi-tenant: cada usuário pertence a uma clínica
+model Clinic {
+  id        String @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  users     User[]
+}
+
+// Usuário do sistema (vamos usar depois no NextAuth)
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(PRACTITIONER)
+  clinicId     String
+  clinic       Clinic   @relation(fields: [clinicId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([clinicId])
+}
+
+// papéis básicos
+enum Role {
+  ADMIN
+  PRACTITIONER
+  ASSISTANT
 }
