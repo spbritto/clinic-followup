@@ -14,6 +14,9 @@ model Clinic {
   createdAt DateTime @default(now())
 
   users     User[]
+  patients  Patient[]
+  encounters Encounter[]
+  followUpPlans FollowUpPlan[]
 }
 
 // Usuário do sistema (vamos usar depois no NextAuth)
@@ -36,4 +39,68 @@ enum Role {
   ADMIN
   PRACTITIONER
   ASSISTANT
+}
+
+model Patient {
+  id        String   @id @default(cuid())
+  clinicId  String
+  clinic    Clinic   @relation(fields: [clinicId], references: [id])
+  name      String
+  birthdate DateTime?
+  phone     String?
+  email     String?
+  tags      String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  encounters     Encounter[]
+  followUpPlans  FollowUpPlan[]
+
+  @@index([clinicId])
+}
+
+model Encounter {
+  id         String   @id @default(cuid())
+  clinicId   String
+  clinic     Clinic   @relation(fields: [clinicId], references: [id])
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id])
+  date       DateTime @default(now())
+  type       EncounterType @default(CHECKIN) // consulta ou checkin
+  notes      String?
+
+  createdAt  DateTime @default(now())
+
+  @@index([clinicId, patientId])
+}
+
+model FollowUpPlan {
+  id               String   @id @default(cuid())
+  clinicId         String
+  clinic           Clinic   @relation(fields: [clinicId], references: [id])
+  patientId        String
+  patient          Patient  @relation(fields: [patientId], references: [id])
+
+  cadenceDays      Int      @default(7) // periodicidade do check-in
+  lastContactAt    DateTime?
+  nextContactAt    DateTime?
+  status           FollowUpStatus @default(OK)
+  pendingAdjustments String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([clinicId, patientId])
+}
+
+enum EncounterType {
+  CONSULTA
+  CHECKIN
+}
+
+enum FollowUpStatus {
+  OK
+  DUE
+  OVERDUE
 }
