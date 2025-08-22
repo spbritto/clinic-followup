@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { SidebarMobile, SidebarStatic } from "@/components/app-sidebar"
+import { LogoutButton } from "@/components/logout-button"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions)
@@ -16,7 +17,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <div className="text-sm text-muted-foreground">
                 {session?.user?.email ? `Logado como ${session.user.email}` : "Não autenticado"}
               </div>
-              <div className="ml-auto text-sm">{session?.user?.role}</div>
+              <div className="ml-auto flex items-center gap-2">
+                <div className="text-sm">{session?.user?.role}</div>
+                <LogoutButton />
+              </div>
             </div>
           </div>
           <div className="p-4">{children}</div>
